@@ -397,34 +397,6 @@
       background: rgb(197, 224, 245) !important;
       border: 1px solid rgb(10, 54, 103) !important;
     }
-    /* Loading indicator for 3D models */
-    .model-loading {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 8px;
-      color: #4a4a4a;
-      font-family: 'IBM Plex Mono', monospace;
-      z-index: 30;
-      background: rgba(255,255,255,0.8);
-      padding: 4px 8px;
-      border-radius: 4px;
-    }
-    .error-message {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 8px;
-      color: #ff0000;
-      font-family: 'IBM Plex Mono', monospace;
-      text-align: center;
-      background: rgba(255,255,255,0.8);
-      padding: 4px 8px;
-      border-radius: 4px;
-      z-index: 30;
-    }
   </style>
 </head>
 <body>
@@ -480,16 +452,13 @@
         </div>
         <!-- GIFTS SUBMENU -->
         <div class="gifts-menu-container" id="giftsMenuContainer" style="display: none;">
-          <div class="menu-item active">Bouquet</div>
-          <div class="menu-item">Mahadi</div>
-          <div class="menu-item">Birkin</div>
+          <div class="menu-item active" data-gift="flower.glb" data-name="Bouquet">Bouquet</div>
+          <div class="menu-item" data-gift="cow.glb" data-name="Mahadi">Mahadi</div>
+          <div class="menu-item" data-gift="gucci.glb" data-name="Birkin">Birkin</div>
         </div>
-        <!-- GIFTS VIEWER - Local 3D models -->
-        <div class="gifts-container" id="giftsContainer" style="display: none; position: relative;">
-          <div class="model-loading" id="modelLoading" style="display: none;">Loading 3D...</div>
-          <model-viewer id="bouquetViewer" src="flower.glb" auto-rotate camera-controls loading="lazy" style="width: 100%; height: 100%; background: transparent; display: none;"></model-viewer>
-          <model-viewer id="mahadiViewer" src="cow.glb" auto-rotate camera-controls loading="lazy" style="width: 100%; height: 100%; background: transparent; display: none;"></model-viewer>
-          <model-viewer id="birkinViewer" src="gucci.glb" auto-rotate camera-controls loading="lazy" style="width: 100%; height: 100%; background: transparent; display: none;"></model-viewer>
+        <!-- GIFTS VIEWER - Single model-viewer with relative paths -->
+        <div class="gifts-container" id="giftsContainer" style="display: none;">
+          <model-viewer id="modelViewer" src="flower.glb" auto-rotate camera-controls loading="eager" style="width: 100%; height: 100%; background: transparent;"></model-viewer>
         </div>
         <!-- SETTINGS SCREEN -->
         <div class="settings-container" id="settingsContainer">
@@ -530,9 +499,7 @@
       const videoContainer = document.getElementById('videoContainer');
       const giftsMenuContainer = document.getElementById('giftsMenuContainer');
       const giftsContainer = document.getElementById('giftsContainer');
-      const bouquetViewer = document.getElementById('bouquetViewer');
-      const mahadiViewer = document.getElementById('mahadiViewer');
-      const birkinViewer = document.getElementById('birkinViewer');
+      const modelViewer = document.getElementById('modelViewer');
       const settingsContainer = document.getElementById('settingsContainer');
       const settingsList = document.getElementById('settingsList');
       const video = document.getElementById('video');
@@ -547,7 +514,6 @@
       const prevBtn = document.getElementById('prevBtn');
       const playBtn = document.getElementById('playBtn');
       const centerBtn = document.getElementById('centerBtn');
-      const modelLoading = document.getElementById('modelLoading');
       
       let selectedIndex = 0;
       let selectedGiftsIndex = 0;
@@ -558,8 +524,6 @@
       let giftsMenuMode = false;
       let giftViewMode = false;
       let isSettingsMode = false;
-      let currentViewer = null;
-      let modelLoadTimeout = null;
       
       let settingsOptions = [
         { key: 'backlight', label: 'Backlight', value: true },
@@ -638,7 +602,6 @@
         menuContainer.style.display = 'block';
         settingsContainer.style.display = 'none';
         isSettingsMode = false;
-        hideAllViewers();
         refreshMenuDisplay();
       }
       
@@ -682,89 +645,23 @@
         refreshMenuDisplay();
       }
       
-      function hideAllViewers() {
-        if (modelLoadTimeout) {
-          clearTimeout(modelLoadTimeout);
-          modelLoadTimeout = null;
-        }
-        bouquetViewer.style.display = 'none';
-        mahadiViewer.style.display = 'none';
-        birkinViewer.style.display = 'none';
-        modelLoading.style.display = 'none';
-        currentViewer = null;
-        
-        // Remove any error messages
-        const existingError = giftsContainer.querySelector('.error-message');
-        if (existingError) existingError.remove();
-      }
-      
-      function showLoadingTimeout() {
-        modelLoading.style.display = 'block';
-        modelLoadTimeout = setTimeout(() => {
-          modelLoading.style.display = 'none';
-          // Show error message if needed
-          const errorMsg = document.createElement('div');
-          errorMsg.className = 'error-message';
-          errorMsg.textContent = 'Failed to load';
-          giftsContainer.appendChild(errorMsg);
-          setTimeout(() => errorMsg.remove(), 2000);
-        }, 5000);
-      }
-      
       function enterGiftView() {
         const giftsItems = giftsMenuContainer.querySelectorAll('.menu-item');
-        const selectedGift = giftsItems[selectedGiftsIndex].textContent;
+        const selectedItem = giftsItems[selectedGiftsIndex];
+        const giftSrc = selectedItem.getAttribute('data-gift');
+        const giftName = selectedItem.getAttribute('data-name');
         
-        hideAllViewers();
-        showLoadingTimeout();
-        
-        if (selectedGift === 'Bouquet') {
-          currentViewer = bouquetViewer;
-          menuLocation.textContent = 'Bouquet';
-        } else if (selectedGift === 'Mahadi') {
-          currentViewer = mahadiViewer;
-          menuLocation.textContent = 'Mahadi';
-        } else if (selectedGift === 'Birkin') {
-          currentViewer = birkinViewer;
-          menuLocation.textContent = 'Birkin';
-        }
-        
-        if (currentViewer) {
-          currentViewer.style.display = 'block';
-          
-          // Hide loading when model loads
-          const onLoad = () => {
-            modelLoading.style.display = 'none';
-            if (modelLoadTimeout) clearTimeout(modelLoadTimeout);
-            currentViewer.removeEventListener('load', onLoad);
-            currentViewer.removeEventListener('error', onError);
-          };
-          
-          // Handle error
-          const onError = () => {
-            modelLoading.style.display = 'none';
-            if (modelLoadTimeout) clearTimeout(modelLoadTimeout);
-            const errorMsg = document.createElement('div');
-            errorMsg.className = 'error-message';
-            errorMsg.textContent = 'Error loading';
-            giftsContainer.appendChild(errorMsg);
-            setTimeout(() => errorMsg.remove(), 2000);
-            currentViewer.removeEventListener('load', onLoad);
-            currentViewer.removeEventListener('error', onError);
-          };
-          
-          currentViewer.addEventListener('load', onLoad);
-          currentViewer.addEventListener('error', onError);
-        }
+        // Change the model source
+        modelViewer.src = giftSrc;
         
         giftsMenuContainer.style.display = 'none';
         giftsContainer.style.display = 'block';
         giftViewMode = true;
+        menuLocation.textContent = giftName;
       }
       
       function exitGiftView() {
         giftViewMode = false;
-        hideAllViewers();
         giftsContainer.style.display = 'none';
         giftsMenuContainer.style.display = 'block';
         menuLocation.textContent = 'Gifts';
