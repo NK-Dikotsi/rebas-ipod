@@ -4,8 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>reba's ipod · online + location · RK's Isand · my time grey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
+    @font-face {
+      font-family: 'Garet';
+      src: url('https://cdn.jsdelivr.net/gh/dhanishgajjar/css-flags@main/fonts/Garet-Book.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Garet';
+      src: url('https://cdn.jsdelivr.net/gh/dhanishgajjar/css-flags@main/fonts/Garet-Medium.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
     * {
       margin: 0;
       padding: 0;
@@ -131,6 +148,59 @@
     .my-time-block span:nth-child(2) { color: #b1b1b1; }
     #liveTime { color: #000000; font-family: "IBM Plex Mono", monospace; }
     .ampm-suffix { color: #000000; font-family: "IBM Plex Mono", monospace; margin-left: 2px; }
+    .property-title {
+      text-align: center;
+      max-width: 500px;
+      padding: 0 20px;
+      margin-top: 8px;
+    }
+    .property-title p {
+      font-family: 'Garet', 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: #000000;
+      line-height: 1.6;
+      letter-spacing: 0.02em;
+      margin: 0;
+    }
+    .property-title .red-text {
+      color: #ff0000;
+      position: relative;
+      display: inline-block;
+      font-weight: 500;
+    }
+    .property-title .red-text::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.6) 40%,
+        rgba(255, 255, 255, 0.9) 50%,
+        rgba(255, 255, 255, 0.6) 60%,
+        transparent 100%
+      );
+      animation: shine 60s infinite ease-in-out;
+      pointer-events: none;
+    }
+    @keyframes shine {
+      0% {
+        left: -100%;
+      }
+      3% {
+        left: -100%;
+      }
+      8% {
+        left: 100%;
+      }
+      100% {
+        left: 100%;
+      }
+    }
     .ipod {
       width: 200px;
       height: 340px;
@@ -203,24 +273,21 @@
     }
     .menu-container,
     .settings-container,
-    .gifts-menu-container,
     .gifts-container {
       flex: 1;
       background: transparent;
       padding: 2px 0;
-      overflow-y: auto;
+      overflow-y: auto; /* SCROLLBAR ENABLED */
       scrollbar-width: thin;
       scrollbar-color: #4a4a4a transparent;
     }
     .menu-container::-webkit-scrollbar,
     .settings-container::-webkit-scrollbar,
-    .gifts-menu-container::-webkit-scrollbar,
     .gifts-container::-webkit-scrollbar {
       width: 4px;
     }
     .menu-container::-webkit-scrollbar-thumb,
     .settings-container::-webkit-scrollbar-thumb,
-    .gifts-menu-container::-webkit-scrollbar-thumb,
     .gifts-container::-webkit-scrollbar-thumb {
       background: #4a4a4a;
       border-radius: 2px;
@@ -418,6 +485,9 @@
         <span class="ampm-suffix" id="ampmSuffix">AM</span>
       </span>
     </div>
+    <div class="property-title">
+      <p>This is Kutlwano and Reboane'<span class="red-text">s</span> Property. Access to this <span class="red-text">space</span> grants you a glimpse into our shared <span class="red-text">moments</span> and memories.</p>
+    </div>
   </div>
   <!-- iPod -->
   <div class="ipod">
@@ -439,7 +509,7 @@
             </div>
           </div>
         </div>
-        <!-- MAIN MENU -->
+        <!-- MAIN MENU – Archives removed -->
         <div class="menu-container" id="menuContainer">
           <div class="menu-item active" data-title="Movies">Movies</div>
           <div class="menu-item" data-title="Letters">Letters</div>
@@ -450,15 +520,9 @@
         <div class="video-container" id="videoContainer">
           <video id="video" src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" loop></video>
         </div>
-        <!-- GIFTS SUBMENU -->
-        <div class="gifts-menu-container" id="giftsMenuContainer" style="display: none;">
-          <div class="menu-item active" data-gift="flower.glb" data-name="Bouquet">Bouquet</div>
-          <div class="menu-item" data-gift="cow.glb" data-name="Mahadi">Mahadi</div>
-          <div class="menu-item" data-gift="gucci.glb" data-name="Birkin">Birkin</div>
-        </div>
-        <!-- GIFTS VIEWER - Single model-viewer with relative paths -->
-        <div class="gifts-container" id="giftsContainer" style="display: none;">
-          <model-viewer id="modelViewer" src="flower.glb" auto-rotate camera-controls loading="eager" style="width: 100%; height: 100%; background: transparent;"></model-viewer>
+        <!-- GIFTS SCREEN -->
+        <div class="gifts-container" id="giftsContainer">
+          <model-viewer src="flower.glb" auto-rotate camera-controls loading="eager" style="width: 100%; height: 100%; background: transparent;"></model-viewer>
         </div>
         <!-- SETTINGS SCREEN -->
         <div class="settings-container" id="settingsContainer">
@@ -497,9 +561,7 @@
       const splash = document.getElementById('splashScreen');
       const menuContainer = document.getElementById('menuContainer');
       const videoContainer = document.getElementById('videoContainer');
-      const giftsMenuContainer = document.getElementById('giftsMenuContainer');
       const giftsContainer = document.getElementById('giftsContainer');
-      const modelViewer = document.getElementById('modelViewer');
       const settingsContainer = document.getElementById('settingsContainer');
       const settingsList = document.getElementById('settingsList');
       const video = document.getElementById('video');
@@ -508,23 +570,19 @@
       const liveTimeSpan = document.getElementById('liveTime');
       const ampmSpan = document.getElementById('ampmSuffix');
       const screenEl = document.getElementById('screen');
-      const menuItems = document.querySelectorAll('#menuContainer .menu-item');
+      const menuItems = document.querySelectorAll('.menu-item');
       const menuBtn = document.getElementById('menuBtn');
       const nextBtn = document.getElementById('nextBtn');
       const prevBtn = document.getElementById('prevBtn');
       const playBtn = document.getElementById('playBtn');
       const centerBtn = document.getElementById('centerBtn');
-      
       let selectedIndex = 0;
-      let selectedGiftsIndex = 0;
       let selectedSettingIndex = 0;
       let isPlaying = false;
       let showingSplash = true;
       let videoMode = false;
-      let giftsMenuMode = false;
-      let giftViewMode = false;
+      let giftsMode = false;
       let isSettingsMode = false;
-      
       let settingsOptions = [
         { key: 'backlight', label: 'Backlight', value: true },
         { key: 'blueLight', label: 'Blue Light', value: false },
@@ -532,21 +590,12 @@
         { key: 'airdrop', label: 'AirDrop', value: false },
         { key: 'sleep', label: 'Sleep', value: false }
       ];
-      
       function refreshMenuDisplay() {
         menuItems.forEach((item, idx) => {
           item.classList.toggle('active', idx === selectedIndex);
         });
         menuLocation.textContent = menuItems[selectedIndex]?.getAttribute('data-title') || 'iPod';
       }
-      
-      function refreshGiftsMenuDisplay() {
-        const giftsItems = giftsMenuContainer.querySelectorAll('.menu-item');
-        giftsItems.forEach((item, idx) => {
-          item.classList.toggle('active', idx === selectedGiftsIndex);
-        });
-      }
-      
       function renderSettings() {
         settingsList.innerHTML = settingsOptions.map((opt, i) => `
           <div class="menu-item ${i === selectedSettingIndex ? 'active' : ''}" data-index="${i}">
@@ -554,11 +603,9 @@
           </div>
         `).join('');
       }
-      
       function applyBacklight() {
         screenEl.style.filter = settingsOptions[0].value ? 'none' : 'brightness(0.45)';
       }
-      
       function applyBlueLight() {
         if (settingsOptions[1].value) {
           screenEl.classList.add('blue-light');
@@ -566,127 +613,80 @@
           screenEl.classList.remove('blue-light');
         }
       }
-      
       function toggleSetting(idx) {
         const opt = settingsOptions[idx];
         opt.value = !opt.value;
         if (opt.key === 'backlight') applyBacklight();
         if (opt.key === 'blueLight') applyBlueLight();
       }
-      
       function hideSplash() {
         if (!showingSplash) return;
         showingSplash = false;
         splash.classList.add('hidden');
         menuContainer.style.display = 'block';
         videoContainer.style.display = 'none';
-        giftsMenuContainer.style.display = 'none';
         giftsContainer.style.display = 'none';
         settingsContainer.style.display = 'none';
         videoMode = false;
-        giftsMenuMode = false;
-        giftViewMode = false;
+        giftsMode = false;
         isSettingsMode = false;
         refreshMenuDisplay();
       }
-      
       function exitToMenu() {
         video.pause();
         isPlaying = false;
         videoMode = false;
-        giftsMenuMode = false;
-        giftViewMode = false;
+        giftsMode = false;
         videoContainer.style.display = 'none';
-        giftsMenuContainer.style.display = 'none';
         giftsContainer.style.display = 'none';
         menuContainer.style.display = 'block';
         settingsContainer.style.display = 'none';
         isSettingsMode = false;
         refreshMenuDisplay();
       }
-      
       function launchVideo() {
         if (showingSplash || videoMode) return;
         if (selectedIndex !== 0) return;
         menuContainer.style.display = 'none';
         settingsContainer.style.display = 'none';
-        giftsMenuContainer.style.display = 'none';
         giftsContainer.style.display = 'none';
         videoContainer.style.display = 'block';
         videoMode = true;
         video.play().then(() => isPlaying = true).catch(() => isPlaying = false);
         menuLocation.textContent = 'Now Playing';
       }
-      
       function toggleVideoPlay() {
         if (!videoMode) return;
         isPlaying ? video.pause() : video.play();
         isPlaying = !isPlaying;
       }
-      
-      function enterGiftsMenu() {
-        if (showingSplash || videoMode || giftsMenuMode || giftViewMode || isSettingsMode) return;
+      function enterGifts() {
+        if (showingSplash || videoMode || giftsMode || isSettingsMode) return;
         if (selectedIndex !== 3) return;
-        giftsMenuMode = true;
-        selectedGiftsIndex = 0;
         menuContainer.style.display = 'none';
         videoContainer.style.display = 'none';
         settingsContainer.style.display = 'none';
-        giftsContainer.style.display = 'none';
-        giftsMenuContainer.style.display = 'block';
-        refreshGiftsMenuDisplay();
-        menuLocation.textContent = 'Gifts';
-      }
-      
-      function exitGiftsMenu() {
-        giftsMenuMode = false;
-        giftsMenuContainer.style.display = 'none';
-        menuContainer.style.display = 'block';
-        refreshMenuDisplay();
-      }
-      
-      function enterGiftView() {
-        const giftsItems = giftsMenuContainer.querySelectorAll('.menu-item');
-        const selectedItem = giftsItems[selectedGiftsIndex];
-        const giftSrc = selectedItem.getAttribute('data-gift');
-        const giftName = selectedItem.getAttribute('data-name');
-        
-        // Change the model source
-        modelViewer.src = giftSrc;
-        
-        giftsMenuContainer.style.display = 'none';
         giftsContainer.style.display = 'block';
-        giftViewMode = true;
-        menuLocation.textContent = giftName;
-      }
-      
-      function exitGiftView() {
-        giftViewMode = false;
-        giftsContainer.style.display = 'none';
-        giftsMenuContainer.style.display = 'block';
+        giftsMode = true;
         menuLocation.textContent = 'Gifts';
       }
-      
       function enterSettings() {
-        if (showingSplash || videoMode || giftsMenuMode || giftViewMode || isSettingsMode) return;
+        if (showingSplash || videoMode || giftsMode || isSettingsMode) return;
         isSettingsMode = true;
         selectedSettingIndex = 0;
         menuContainer.style.display = 'none';
         videoContainer.style.display = 'none';
-        giftsMenuContainer.style.display = 'none';
         giftsContainer.style.display = 'none';
         settingsContainer.style.display = 'block';
         renderSettings();
         menuLocation.textContent = 'Settings';
       }
-      
       function exitSettings() {
         isSettingsMode = false;
         settingsContainer.style.display = 'none';
         menuContainer.style.display = 'block';
         refreshMenuDisplay();
       }
-      
       function updateClock() {
         const now = new Date();
         let hours = now.getHours();
@@ -698,40 +698,30 @@
         liveTimeSpan.textContent = timeString;
         ampmSpan.textContent = ampm;
       }
-      
       updateClock();
       setInterval(updateClock, 60000);
-      
       nextBtn.addEventListener('click', e => {
         e.stopPropagation();
-        if (showingSplash || videoMode || giftViewMode) return;
+        if (showingSplash || videoMode || giftsMode) return;
         if (isSettingsMode) {
           selectedSettingIndex = (selectedSettingIndex + 1) % settingsOptions.length;
           renderSettings();
-        } else if (giftsMenuMode) {
-          selectedGiftsIndex = (selectedGiftsIndex + 1) % 3;
-          refreshGiftsMenuDisplay();
         } else {
           selectedIndex = (selectedIndex + 1) % menuItems.length;
           refreshMenuDisplay();
         }
       });
-      
       prevBtn.addEventListener('click', e => {
         e.stopPropagation();
-        if (showingSplash || videoMode || giftViewMode) return;
+        if (showingSplash || videoMode || giftsMode) return;
         if (isSettingsMode) {
           selectedSettingIndex = (selectedSettingIndex - 1 + settingsOptions.length) % settingsOptions.length;
           renderSettings();
-        } else if (giftsMenuMode) {
-          selectedGiftsIndex = (selectedGiftsIndex - 1 + 3) % 3;
-          refreshGiftsMenuDisplay();
         } else {
           selectedIndex = (selectedIndex - 1 + menuItems.length) % menuItems.length;
           refreshMenuDisplay();
         }
       });
-      
       centerBtn.addEventListener('click', e => {
         e.stopPropagation();
         if (showingSplash) { hideSplash(); return; }
@@ -741,49 +731,33 @@
           renderSettings();
           return;
         }
-        if (giftsMenuMode) {
-          enterGiftView();
-          return;
-        }
         if (selectedIndex === 0) launchVideo();
-        else if (selectedIndex === 3) enterGiftsMenu();
-        else if (selectedIndex === 4) enterSettings();
+        else if (selectedIndex === 3) enterGifts();
+        else if (selectedIndex === 4) enterSettings(); // Settings is now index 4
       });
-      
       menuBtn.addEventListener('click', e => {
         e.stopPropagation();
         if (showingSplash) { hideSplash(); return; }
-        if (videoMode || giftViewMode) {
-          if (giftViewMode) {
-            exitGiftView();
-          } else {
-            exitToMenu();
-          }
-          return;
-        }
-        if (giftsMenuMode) { exitGiftsMenu(); return; }
+        if (videoMode || giftsMode) { exitToMenu(); return; }
         if (isSettingsMode) { exitSettings(); return; }
       });
-      
       playBtn.addEventListener('click', e => {
         e.stopPropagation();
         if (showingSplash) return;
         if (videoMode) toggleVideoPlay();
         else if (selectedIndex === 0) launchVideo();
       });
-      
       menuItems.forEach((item, idx) => {
         item.addEventListener('click', e => {
           e.stopPropagation();
-          if (showingSplash || videoMode || giftsMenuMode || giftViewMode || isSettingsMode) return;
+          if (showingSplash || videoMode || giftsMode || isSettingsMode) return;
           selectedIndex = idx;
           refreshMenuDisplay();
           if (selectedIndex === 0) launchVideo();
-          else if (selectedIndex === 3) enterGiftsMenu();
+          else if (selectedIndex === 3) enterGifts();
           else if (selectedIndex === 4) enterSettings();
         });
       });
-      
       settingsList.addEventListener('click', e => {
         if (!isSettingsMode) return;
         const item = e.target.closest('.menu-item');
@@ -796,13 +770,11 @@
           }
         }
       });
-      
       // Initial state
       splash.classList.remove('hidden');
       showingSplash = true;
       menuContainer.style.display = 'block';
       videoContainer.style.display = 'none';
-      giftsMenuContainer.style.display = 'none';
       giftsContainer.style.display = 'none';
       settingsContainer.style.display = 'none';
       refreshMenuDisplay();
