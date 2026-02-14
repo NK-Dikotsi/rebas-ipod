@@ -262,6 +262,36 @@
       object-fit: contain;
       background: #000;
     }
+    /* Gifts menu and viewer */
+    .gifts-menu-container {
+      flex:1;
+      background:transparent;
+      overflow-y:scroll;
+      scrollbar-width:thin;
+      scrollbar-color:#4a4a4a transparent;
+      position: relative;
+      scroll-behavior: smooth;
+    }
+    .gifts-menu-container::-webkit-scrollbar { 
+      width:4px; 
+      display: block;
+    }
+    .gifts-menu-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .gifts-menu-container::-webkit-scrollbar-thumb { 
+      background:#4a4a4a; 
+      border-radius:2px; 
+    }
+    .gift-viewer {
+      flex:1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      position: relative;
+      overflow: hidden;
+    }
     /* Diary Player - minimal design */
     .diary-player {
       flex:1;
@@ -425,9 +455,11 @@
           <video id="video" preload="metadata" loop playsinline></video>
         </div>
 
-        <!-- GIFTS (model) -->
-        <div class="gifts-container" id="giftsContainer" style="display:none;">
-          <model-viewer src="flower.glb" auto-rotate camera-controls loading="eager" style="width:100%; height:100%; background:transparent;"></model-viewer>
+        <!-- GIFTS (menu and viewer) -->
+        <div class="gifts-menu-container" id="giftsMenuContainer" style="display:none;"></div>
+        
+        <div class="gift-viewer" id="giftViewer" style="display:none;">
+          <model-viewer id="giftModel" src="" auto-rotate camera-controls loading="eager" style="width:100%; height:100%; background:transparent;"></model-viewer>
         </div>
 
         <!-- SETTINGS -->
@@ -481,7 +513,9 @@
       const diaryPlayer = document.getElementById('diaryPlayer');
       const videoContainer = document.getElementById('videoContainer');
       const video = document.getElementById('video');
-      const giftsContainer = document.getElementById('giftsContainer');
+      const giftsMenuContainer = document.getElementById('giftsMenuContainer');
+      const giftViewer = document.getElementById('giftViewer');
+      const giftModel = document.getElementById('giftModel');
       const settingsContainer = document.getElementById('settingsContainer');
       const settingsList = document.getElementById('settingsList');
       const menuLocation = document.getElementById('menuLocation');
@@ -510,7 +544,9 @@
       let lostFilesVisible = false;
       let selectedPhotoIndex = 0;
       let photoViewerVisible = false;
-      let giftsMode = false;
+      let giftsMenuVisible = false;
+      let selectedGiftIndex = 0;
+      let giftViewerVisible = false;
       let isSettingsMode = false;
       let selectedSettingIndex = 0;
       let diaryMode = false;
@@ -555,6 +591,26 @@
         if (activeItem) activeItem.scrollIntoView({ block: 'nearest' });
       }
 
+      // Gifts data and render function
+      const gifts = [
+        { name: 'mbali', file: 'flower.glb', enabled: true },
+        { name: 'lobola', file: 'cow.glb', enabled: true },
+        { name: 'birkin', file: 'bag.glb', enabled: true },
+        { name: 'amathousand', file: 'money.glb', enabled: true }
+      ];
+
+      function renderGiftsMenu() {
+        let html = '';
+        gifts.forEach((gift, idx) => {
+          const displayName = gift.name;
+          const number = (idx + 1).toString().padStart(2, '0');
+          html += `<div class="menu-item ${idx === selectedGiftIndex ? 'active' : ''}" data-gift-index="${idx}"><span class="photo-number">${number}.</span>${displayName}</div>`;
+        });
+        giftsMenuContainer.innerHTML = html;
+        const activeItem = giftsMenuContainer.querySelector('.menu-item.active');
+        if (activeItem) activeItem.scrollIntoView({ block: 'nearest' });
+      }
+
       function refreshMainMenuActive() {
         menuItems.forEach((item, idx) => {
           item.classList.toggle('active', idx === selectedIndex);
@@ -591,12 +647,14 @@
         photoViewer.style.display = 'none';
         diaryPlayer.style.display = 'none';
         videoContainer.style.display = 'none';
-        giftsContainer.style.display = 'none';
+        giftsMenuContainer.style.display = 'none';
+        giftViewer.style.display = 'none';
         settingsContainer.style.display = 'none';
         videoListVisible = false;
         lostFilesVisible = false;
         photoViewerVisible = false;
-        giftsMode = false;
+        giftsMenuVisible = false;
+        giftViewerVisible = false;
         isSettingsMode = false;
         diaryMode = false;
         refreshMainMenuActive();
@@ -609,7 +667,8 @@
         videoListVisible = false;
         lostFilesVisible = false;
         photoViewerVisible = false;
-        giftsMode = false;
+        giftsMenuVisible = false;
+        giftViewerVisible = false;
         isSettingsMode = false;
         diaryMode = false;
         menuContainer.style.display = 'block';
@@ -618,7 +677,8 @@
         photoViewer.style.display = 'none';
         diaryPlayer.style.display = 'none';
         videoContainer.style.display = 'none';
-        giftsContainer.style.display = 'none';
+        giftsMenuContainer.style.display = 'none';
+        giftViewer.style.display = 'none';
         settingsContainer.style.display = 'none';
         refreshMainMenuActive();
         menuLocation.textContent = 'iPod';
@@ -632,10 +692,11 @@
         photoViewer.style.display = 'none';
         diaryPlayer.style.display = 'none';
         videoContainer.style.display = 'none';
-        giftsContainer.style.display = 'none';
+        giftsMenuContainer.style.display = 'none';
+        giftViewer.style.display = 'none';
         settingsContainer.style.display = 'none';
         videoListVisible = true;
-        lostFilesVisible = false; photoViewerVisible = false; giftsMode = false; isSettingsMode = false; diaryMode = false;
+        lostFilesVisible = false; photoViewerVisible = false; giftsMenuVisible = false; giftViewerVisible = false; isSettingsMode = false; diaryMode = false;
         selectedVideoIndex = 0;
         renderVideoList();
         menuLocation.textContent = 'Movies';
@@ -649,10 +710,11 @@
         photoViewer.style.display = 'none';
         diaryPlayer.style.display = 'none';
         videoContainer.style.display = 'none';
-        giftsContainer.style.display = 'none';
+        giftsMenuContainer.style.display = 'none';
+        giftViewer.style.display = 'none';
         settingsContainer.style.display = 'none';
         lostFilesVisible = true;
-        videoListVisible = false; photoViewerVisible = false; giftsMode = false; isSettingsMode = false; diaryMode = false;
+        videoListVisible = false; photoViewerVisible = false; giftsMenuVisible = false; giftViewerVisible = false; isSettingsMode = false; diaryMode = false;
         selectedPhotoIndex = 0;
         renderLostFiles();
         menuLocation.textContent = 'Lost Files';
@@ -676,6 +738,40 @@
         menuLocation.textContent = cleanName;
       }
 
+      function showGiftsMenu() {
+        if (showingSplash) return;
+        menuContainer.style.display = 'none';
+        videoListContainer.style.display = 'none';
+        lostFilesContainer.style.display = 'none';
+        photoViewer.style.display = 'none';
+        diaryPlayer.style.display = 'none';
+        videoContainer.style.display = 'none';
+        giftsMenuContainer.style.display = 'block';
+        giftViewer.style.display = 'none';
+        settingsContainer.style.display = 'none';
+        giftsMenuVisible = true;
+        videoListVisible = false; lostFilesVisible = false; photoViewerVisible = false; giftViewerVisible = false; isSettingsMode = false; diaryMode = false;
+        selectedGiftIndex = 0;
+        renderGiftsMenu();
+        menuLocation.textContent = 'Gifts';
+      }
+
+      function showGiftViewer(index) {
+        if (index < 0 || index >= gifts.length) return;
+        const gift = gifts[index];
+        if (!gift.enabled || !gift.file) {
+          // Gift not available yet
+          return;
+        }
+        selectedGiftIndex = index;
+        giftModel.src = gift.file;
+        giftsMenuContainer.style.display = 'none';
+        giftViewer.style.display = 'flex';
+        giftViewerVisible = true;
+        giftsMenuVisible = false;
+        menuLocation.textContent = gift.name;
+      }
+
       function showDiary() {
         if (showingSplash) return;
         menuContainer.style.display = 'none';
@@ -684,10 +780,11 @@
         photoViewer.style.display = 'none';
         diaryPlayer.style.display = 'flex';
         videoContainer.style.display = 'none';
-        giftsContainer.style.display = 'none';
+        giftsMenuContainer.style.display = 'none';
+        giftViewer.style.display = 'none';
         settingsContainer.style.display = 'none';
         diaryMode = true;
-        lostFilesVisible = false; photoViewerVisible = false; videoListVisible = false; giftsMode = false; isSettingsMode = false;
+        lostFilesVisible = false; photoViewerVisible = false; videoListVisible = false; giftsMenuVisible = false; giftViewerVisible = false; isSettingsMode = false;
         menuLocation.textContent = 'Diary';
         if (diaryAudio.src === '' || !diaryAudio.src.endsWith('diary1.mp4')) {
           diaryAudio.src = 'voice/diary1.mp4';
@@ -776,16 +873,7 @@
 
       function enterGifts() {
         if (selectedIndex !== 3) return;
-        menuContainer.style.display = 'none';
-        videoListContainer.style.display = 'none';
-        lostFilesContainer.style.display = 'none';
-        photoViewer.style.display = 'none';
-        diaryPlayer.style.display = 'none';
-        videoContainer.style.display = 'none';
-        settingsContainer.style.display = 'none';
-        giftsContainer.style.display = 'block';
-        giftsMode = true; diaryMode = false; videoListVisible = false; lostFilesVisible = false; photoViewerVisible = false; isSettingsMode = false;
-        menuLocation.textContent = 'Gifts';
+        showGiftsMenu();
       }
 
       function enterSettings() {
@@ -797,7 +885,8 @@
         photoViewer.style.display = 'none';
         diaryPlayer.style.display = 'none';
         videoContainer.style.display = 'none';
-        giftsContainer.style.display = 'none';
+        giftsMenuContainer.style.display = 'none';
+        giftViewer.style.display = 'none';
         settingsContainer.style.display = 'block';
         renderSettings();
         menuLocation.textContent = 'Settings';
@@ -822,7 +911,12 @@
       // Event Handlers
       nextBtn.addEventListener('click', e => {
         e.stopPropagation();
-        if (showingSplash || giftsMode) return;
+        if (showingSplash) return;
+        if (giftViewerVisible) {
+          selectedGiftIndex = (selectedGiftIndex + 1) % gifts.length;
+          showGiftViewer(selectedGiftIndex);
+          return;
+        }
         if (photoViewerVisible) {
           selectedPhotoIndex = (selectedPhotoIndex + 1) % photoFiles.length;
           showPhotoViewer(selectedPhotoIndex);
@@ -832,6 +926,10 @@
         if (isSettingsMode) {
           selectedSettingIndex = (selectedSettingIndex + 1) % settingsOptions.length;
           renderSettings();
+        }
+        else if (giftsMenuVisible) {
+          selectedGiftIndex = (selectedGiftIndex + 1) % gifts.length;
+          renderGiftsMenu();
         }
         else if (videoListVisible) {
           selectedVideoIndex = (selectedVideoIndex + 1) % 10;
@@ -853,7 +951,12 @@
 
       prevBtn.addEventListener('click', e => {
         e.stopPropagation();
-        if (showingSplash || giftsMode) return;
+        if (showingSplash) return;
+        if (giftViewerVisible) {
+          selectedGiftIndex = (selectedGiftIndex - 1 + gifts.length) % gifts.length;
+          showGiftViewer(selectedGiftIndex);
+          return;
+        }
         if (photoViewerVisible) {
           selectedPhotoIndex = (selectedPhotoIndex - 1 + photoFiles.length) % photoFiles.length;
           showPhotoViewer(selectedPhotoIndex);
@@ -863,6 +966,10 @@
         if (isSettingsMode) {
           selectedSettingIndex = (selectedSettingIndex - 1 + settingsOptions.length) % settingsOptions.length;
           renderSettings();
+        }
+        else if (giftsMenuVisible) {
+          selectedGiftIndex = (selectedGiftIndex - 1 + gifts.length) % gifts.length;
+          renderGiftsMenu();
         }
         else if (videoListVisible) {
           selectedVideoIndex = (selectedVideoIndex - 1 + 10) % 10;
@@ -885,7 +992,7 @@
       centerBtn.addEventListener('click', e => {
         e.stopPropagation();
         if (showingSplash) { hideSplash(); return; }
-        if (giftsMode) return;
+        if (giftViewerVisible) return; // In gift viewer, center doesn't do anything
         if (photoViewerVisible) return; // In photo viewer, center doesn't do anything
         if (diaryMode) { toggleAudioPlay(); return; }
         if (videoContainer.style.display === 'block') { toggleVideoPlay(); return; }
@@ -893,6 +1000,10 @@
         if (videoListVisible) { playSelectedVideo(); return; }
         if (lostFilesVisible) {
           showPhotoViewer(selectedPhotoIndex);
+          return;
+        }
+        if (giftsMenuVisible) {
+          showGiftViewer(selectedGiftIndex);
           return;
         }
         // main menu navigation
@@ -914,6 +1025,14 @@
           menuLocation.textContent = 'Lost Files';
           return;
         }
+        if (giftViewerVisible) {
+          giftViewer.style.display = 'none';
+          giftsMenuContainer.style.display = 'block';
+          giftViewerVisible = false;
+          giftsMenuVisible = true;
+          menuLocation.textContent = 'Gifts';
+          return;
+        }
         if (videoContainer.style.display === 'block') {
           video.pause(); videoPlaying = false;
           videoContainer.style.display = 'none';
@@ -921,7 +1040,7 @@
           menuLocation.textContent = 'Movies';
           return;
         }
-        if (videoListVisible || diaryMode || lostFilesVisible || giftsMode || isSettingsMode) {
+        if (videoListVisible || diaryMode || lostFilesVisible || giftsMenuVisible || isSettingsMode) {
           exitToMainMenu();
           return;
         }
@@ -930,12 +1049,14 @@
       playBtn.addEventListener('click', e => {
         e.stopPropagation();
         if (showingSplash) return;
-        if (photoViewerVisible) return;
+        if (photoViewerVisible || giftViewerVisible) return;
         if (videoContainer.style.display === 'block') { toggleVideoPlay(); }
         else if (selectedIndex === 0 && !videoListVisible) { showVideoList(); }
         else if (videoListVisible) { playSelectedVideo(); }
         else if (selectedIndex === 2 && !lostFilesVisible) { showLostFiles(); }
         else if (lostFilesVisible) { showPhotoViewer(selectedPhotoIndex); }
+        else if (selectedIndex === 3 && !giftsMenuVisible) { showGiftsMenu(); }
+        else if (giftsMenuVisible) { showGiftViewer(selectedGiftIndex); }
         else if (diaryMode) { toggleAudioPlay(); }
       });
 
@@ -961,6 +1082,17 @@
         }
       });
 
+      giftsMenuContainer.addEventListener('click', (e) => {
+        const item = e.target.closest('.menu-item');
+        if (!item || !giftsMenuVisible) return;
+        const idx = item.dataset.giftIndex;
+        if (idx !== undefined) {
+          selectedGiftIndex = parseInt(idx, 10);
+          renderGiftsMenu();
+          showGiftViewer(selectedGiftIndex);
+        }
+      });
+
       settingsList.addEventListener('click', (e) => {
         if (!isSettingsMode) return;
         const item = e.target.closest('.menu-item');
@@ -978,7 +1110,7 @@
         item.addEventListener('click', (e) => {
           e.stopPropagation();
           if (showingSplash) return;
-          if (videoListVisible || lostFilesVisible || photoViewerVisible || giftsMode || isSettingsMode || diaryMode) return;
+          if (videoListVisible || lostFilesVisible || photoViewerVisible || giftsMenuVisible || giftViewerVisible || isSettingsMode || diaryMode) return;
           selectedIndex = idx;
           refreshMainMenuActive();
           if (selectedIndex === 0) showVideoList();
@@ -998,12 +1130,13 @@
       photoViewer.style.display = 'none';
       diaryPlayer.style.display = 'none';
       videoContainer.style.display = 'none';
-      giftsContainer.style.display = 'none';
+      giftsMenuContainer.style.display = 'none';
+      giftViewer.style.display = 'none';
       settingsContainer.style.display = 'none';
       refreshMainMenuActive();
       applyBacklight(); applyBlueLight();
 
-      const scrollContainers = [menuContainer, videoListContainer, lostFilesContainer, giftsContainer, settingsContainer];
+      const scrollContainers = [menuContainer, videoListContainer, lostFilesContainer, giftsMenuContainer, settingsContainer];
       scrollContainers.forEach(container => {
         if (container) {
           container.addEventListener('wheel', (e) => {
