@@ -197,7 +197,7 @@
       100% { background-color:rgb(180,180,180); }
     }
     /* scrollable containers */
-    .menu-container, .video-list-container, .gifts-container, .settings-container, .diary-container {
+    .menu-container, .video-list-container, .gifts-container, .settings-container {
       flex:1;
       background:transparent;
       overflow-y:scroll;
@@ -207,19 +207,16 @@
       scroll-behavior: smooth;
     }
     .menu-container::-webkit-scrollbar, .video-list-container::-webkit-scrollbar,
-    .gifts-container::-webkit-scrollbar, .settings-container::-webkit-scrollbar,
-    .diary-container::-webkit-scrollbar { 
+    .gifts-container::-webkit-scrollbar, .settings-container::-webkit-scrollbar { 
       width:4px; 
       display: block;
     }
     .menu-container::-webkit-scrollbar-track, .video-list-container::-webkit-scrollbar-track,
-    .gifts-container::-webkit-scrollbar-track, .settings-container::-webkit-scrollbar-track,
-    .diary-container::-webkit-scrollbar-track {
+    .gifts-container::-webkit-scrollbar-track, .settings-container::-webkit-scrollbar-track {
       background: transparent;
     }
     .menu-container::-webkit-scrollbar-thumb, .video-list-container::-webkit-scrollbar-thumb,
-    .gifts-container::-webkit-scrollbar-thumb, .settings-container::-webkit-scrollbar-thumb,
-    .diary-container::-webkit-scrollbar-thumb { 
+    .gifts-container::-webkit-scrollbar-thumb, .settings-container::-webkit-scrollbar-thumb { 
       background:#4a4a4a; 
       border-radius:2px; 
     }
@@ -238,30 +235,49 @@
       background-color:rgb(74,74,74);
       color:rgb(208,216,208);
     }
-    /* Diary message styling */
-    .diary-message {
-      padding: 10px 8px;
-      font-family: 'Inter', sans-serif;
+    /* Diary Player - minimal design */
+    .diary-player {
+      flex:1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 12px 10px;
+      background: transparent;
+    }
+    .track-title {
       font-size: 10px;
-      line-height: 1.5;
-      color: rgb(42,42,42);
-      background: rgba(255,255,240,0.3);
-      border-left: 2px solid rgb(74,74,74);
-      margin: 5px;
-      border-radius: 0 6px 6px 0;
-      white-space: pre-wrap;
-      word-break: break-word;
-      box-shadow: inset 0 0 6px rgba(0,0,0,0.05);
-    }
-    .diary-message p {
+      font-weight: 400;
+      color: #2a2a2a;
       margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
     }
-    .diary-message .signature {
-      text-align: right;
-      font-style: italic;
-      margin-top: 8px;
-      font-weight: 500;
+    .time-indicator {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      color: #2a2a2a;
+      margin-bottom: 2px;
+      width: 100%;
+      text-align: left;
     }
+    .progress-bar-bg {
+      width: 100%;
+      height: 3px;
+      background: #d0d0d0;
+      border-radius: 1.5px;
+      margin: 0;
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #2a2a2a;
+      border-radius: 1.5px;
+    }
+    .hidden { display: none !important; }
     .video-container {
       display:none;
       width:100%;
@@ -312,10 +328,8 @@
       box-shadow:0 0 0 1px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.15);
       cursor:pointer; border:none; z-index:5;
     }
-    .hidden { display:none !important; }
     .screen-content { flex:1; display:flex; flex-direction:column; position:relative; }
     .screen.blue-light { background:rgb(197,224,245) !important; border:1px solid rgb(10,54,103) !important; }
-    /* video list tweaks */
     .video-list-container .menu-item {
       font-size:9px; padding:3px 8px;
     }
@@ -326,6 +340,8 @@
       font-family: "IBM Plex Mono", monospace;
       font-weight: 500;
     }
+    /* hidden audio element */
+    #diaryAudio { display: none; }
   </style>
 </head>
 <body>
@@ -372,16 +388,14 @@
         <!-- VIDEO LIST (Movies) -->
         <div class="video-list-container" id="videoListContainer" style="display:none;"></div>
 
-        <!-- DIARY CONTAINER (message box) -->
-        <div class="diary-container" id="diaryContainer" style="display:none;">
-          <div class="diary-message">
-            <p>Happy Valentines Day Ma,</p>
-            <p>I'm grateful for the love that you show me everyday, the kindness, gentleness, and care. Of course we can't forget your jokes but you are an amazing Human Being, not only that but you sure do make a Hot girlfriend, I love you so much Lerato laka, you'll always be special to me, and I want to thank you for taking care of us the way you do.</p>
-            <p class="signature">love Wano</p>
-          </div>
+        <!-- DIARY PLAYER - minimal design -->
+        <div class="diary-player" id="diaryPlayer" style="display:none;">
+          <div class="track-title">Valentine's Note for Ma</div>
+          <div class="time-indicator" id="audioTimeDisplay">0:00</div>
+          <div class="progress-bar-bg"><div class="progress-fill" id="audioProgress" style="width:0%"></div></div>
         </div>
 
-        <!-- Video player -->
+        <!-- Video player (for Movies) -->
         <div class="video-container" id="videoContainer">
           <video id="video" preload="metadata" loop playsinline></video>
         </div>
@@ -397,6 +411,9 @@
         </div>
       </div>
     </div>
+
+    <!-- hidden audio element for diary -->
+    <audio id="diaryAudio" preload="metadata" src="voice/diary1.mp4"></audio>
 
     <!-- click wheel -->
     <div class="wheel">
@@ -416,11 +433,12 @@
         "airbnb.mp4",
         "For the groovists.mp4",
         "genZLuv.mp4",
-        "nails .mp4",
+        "nails.mp4",
         "rated 18.mp4",
         "Stole It.mp4",
         "The Day Our Lives Changed.mp4",
-        "aweh.mp4"
+        "aweh.mp4",
+        "cuppacino.mp4"
       ];
 
       const videoBase = "videos/";
@@ -429,7 +447,7 @@
       const splash = document.getElementById('splashScreen');
       const menuContainer = document.getElementById('menuContainer');
       const videoListContainer = document.getElementById('videoListContainer');
-      const diaryContainer = document.getElementById('diaryContainer');
+      const diaryPlayer = document.getElementById('diaryPlayer');
       const videoContainer = document.getElementById('videoContainer');
       const video = document.getElementById('video');
       const giftsContainer = document.getElementById('giftsContainer');
@@ -447,17 +465,22 @@
       const playBtn = document.getElementById('playBtn');
       const centerBtn = document.getElementById('centerBtn');
 
+      // audio elements
+      const diaryAudio = document.getElementById('diaryAudio');
+      const audioTimeDisplay = document.getElementById('audioTimeDisplay');
+      const audioProgress = document.getElementById('audioProgress');
+
       // ---------- state ----------
       let showingSplash = true;
       let selectedIndex = 0;
       let videoListVisible = false;
       let selectedVideoIndex = 0;
       let videoPlaying = false;
-      let currentVideoSrc = "";
       let giftsMode = false;
       let isSettingsMode = false;
       let selectedSettingIndex = 0;
-      let diaryMode = false;        // new flag for diary
+      let diaryMode = false;
+      let audioPlaying = false;
 
       // settings options
       let settingsOptions = [
@@ -513,7 +536,7 @@
         splash.classList.add('hidden');
         menuContainer.style.display = 'block';
         videoListContainer.style.display = 'none';
-        diaryContainer.style.display = 'none';
+        diaryPlayer.style.display = 'none';
         videoContainer.style.display = 'none';
         giftsContainer.style.display = 'none';
         settingsContainer.style.display = 'none';
@@ -526,16 +549,15 @@
       }
 
       function exitToMainMenu() {
-        video.pause();
-        video.src = '';
-        videoPlaying = false;
+        video.pause(); video.src = ''; videoPlaying = false;
+        diaryAudio.pause(); audioPlaying = false;
         videoListVisible = false;
         giftsMode = false;
         isSettingsMode = false;
         diaryMode = false;
         menuContainer.style.display = 'block';
         videoListContainer.style.display = 'none';
-        diaryContainer.style.display = 'none';
+        diaryPlayer.style.display = 'none';
         videoContainer.style.display = 'none';
         giftsContainer.style.display = 'none';
         settingsContainer.style.display = 'none';
@@ -547,14 +569,12 @@
         if (showingSplash) return;
         menuContainer.style.display = 'none';
         videoListContainer.style.display = 'block';
-        diaryContainer.style.display = 'none';
+        diaryPlayer.style.display = 'none';
         videoContainer.style.display = 'none';
         giftsContainer.style.display = 'none';
         settingsContainer.style.display = 'none';
         videoListVisible = true;
-        giftsMode = false;
-        isSettingsMode = false;
-        diaryMode = false;
+        giftsMode = false; isSettingsMode = false; diaryMode = false;
         selectedVideoIndex = 0;
         renderVideoList();
         menuLocation.textContent = 'Movies';
@@ -564,15 +584,18 @@
         if (showingSplash) return;
         menuContainer.style.display = 'none';
         videoListContainer.style.display = 'none';
-        diaryContainer.style.display = 'block';
+        diaryPlayer.style.display = 'flex';
         videoContainer.style.display = 'none';
         giftsContainer.style.display = 'none';
         settingsContainer.style.display = 'none';
         diaryMode = true;
-        videoListVisible = false;
-        giftsMode = false;
-        isSettingsMode = false;
+        videoListVisible = false; giftsMode = false; isSettingsMode = false;
         menuLocation.textContent = 'Diary';
+        if (diaryAudio.src === '' || !diaryAudio.src.endsWith('diary1.mp4')) {
+          diaryAudio.src = 'voice/diary1.mp4';
+          diaryAudio.load();
+        }
+        updateAudioTimeDisplay();
       }
 
       function playSelectedVideo() {
@@ -588,13 +611,13 @@
         video.play().then(() => {
           videoPlaying = true;
           videoListContainer.style.display = 'none';
-          diaryContainer.style.display = 'none';
+          diaryPlayer.style.display = 'none';
           videoContainer.style.display = 'block';
           menuLocation.textContent = 'Now Playing';
         }).catch(e => {
           console.warn("play failed:", e);
           videoListContainer.style.display = 'none';
-          diaryContainer.style.display = 'none';
+          diaryPlayer.style.display = 'none';
           videoContainer.style.display = 'block';
           menuLocation.textContent = 'Now Playing';
         });
@@ -602,39 +625,67 @@
 
       function toggleVideoPlay() {
         if (videoContainer.style.display !== 'block') return;
-        if (videoPlaying) { 
-          video.pause(); 
-          videoPlaying = false; 
+        if (videoPlaying) { video.pause(); videoPlaying = false; }
+        else { video.play().then(() => { videoPlaying = true; }).catch(e => console.warn("play toggle failed:", e)); }
+      }
+
+      // Audio functions
+      function toggleAudioPlay() {
+        if (!diaryMode) return;
+        if (audioPlaying) {
+          diaryAudio.pause();
+          audioPlaying = false;
+        } else {
+          diaryAudio.play().then(() => {
+            audioPlaying = true;
+          }).catch(e => console.warn("audio play failed:", e));
         }
-        else { 
-          video.play().then(() => {
-            videoPlaying = true;
-          }).catch(e => console.warn("play toggle failed:", e));
-        }
+      }
+
+      function updateAudioTimeDisplay() {
+        if (!diaryMode || !diaryAudio) return;
+        const current = diaryAudio.currentTime || 0;
+        const format = (s) => {
+          const mins = Math.floor(s / 60);
+          const secs = Math.floor(s % 60).toString().padStart(2,'0');
+          return `${mins}:${secs}`;
+        };
+        audioTimeDisplay.textContent = format(current);
+        const total = diaryAudio.duration || 0;
+        const percent = total > 0 ? (current / total) * 100 : 0;
+        audioProgress.style.width = percent + '%';
+      }
+
+      function rewindAudio() {
+        if (!diaryAudio) return;
+        diaryAudio.currentTime = Math.max(0, diaryAudio.currentTime - 10);
+        updateAudioTimeDisplay();
+      }
+
+      function forwardAudio() {
+        if (!diaryAudio) return;
+        diaryAudio.currentTime = Math.min(diaryAudio.duration || 0, diaryAudio.currentTime + 10);
+        updateAudioTimeDisplay();
       }
 
       function enterGifts() {
         if (selectedIndex !== 3) return;
         menuContainer.style.display = 'none';
         videoListContainer.style.display = 'none';
-        diaryContainer.style.display = 'none';
+        diaryPlayer.style.display = 'none';
         videoContainer.style.display = 'none';
         settingsContainer.style.display = 'none';
         giftsContainer.style.display = 'block';
-        giftsMode = true;
-        diaryMode = false;
-        videoListVisible = false;
-        isSettingsMode = false;
+        giftsMode = true; diaryMode = false; videoListVisible = false; isSettingsMode = false;
         menuLocation.textContent = 'Gifts';
       }
 
       function enterSettings() {
         if (selectedIndex !== 4) return;
-        isSettingsMode = true;
-        selectedSettingIndex = 0;
+        isSettingsMode = true; selectedSettingIndex = 0;
         menuContainer.style.display = 'none';
         videoListContainer.style.display = 'none';
-        diaryContainer.style.display = 'none';
+        diaryPlayer.style.display = 'none';
         videoContainer.style.display = 'none';
         giftsContainer.style.display = 'none';
         settingsContainer.style.display = 'block';
@@ -655,12 +706,15 @@
       }
       updateClock(); setInterval(updateClock, 60000);
 
-      // ---------- Event Handlers ----------
+      // audio timeupdate
+      diaryAudio.addEventListener('timeupdate', updateAudioTimeDisplay);
+      diaryAudio.addEventListener('ended', () => { audioPlaying = false; });
+
+      // Event Handlers
       nextBtn.addEventListener('click', e => {
         e.stopPropagation();
-        if (showingSplash) return;
-        if (giftsMode) return;
-        if (diaryMode) return;  // no navigation inside diary
+        if (showingSplash || giftsMode) return;
+        if (diaryMode) { forwardAudio(); return; }
         if (isSettingsMode) {
           selectedSettingIndex = (selectedSettingIndex + 1) % settingsOptions.length;
           renderSettings();
@@ -683,9 +737,8 @@
 
       prevBtn.addEventListener('click', e => {
         e.stopPropagation();
-        if (showingSplash) return;
-        if (giftsMode) return;
-        if (diaryMode) return;
+        if (showingSplash || giftsMode) return;
+        if (diaryMode) { rewindAudio(); return; }
         if (isSettingsMode) {
           selectedSettingIndex = (selectedSettingIndex - 1 + settingsOptions.length) % settingsOptions.length;
           renderSettings();
@@ -710,22 +763,12 @@
         e.stopPropagation();
         if (showingSplash) { hideSplash(); return; }
         if (giftsMode) return;
-        if (diaryMode) return;   // nothing to select inside diary
-        if (videoContainer.style.display === 'block') {
-          toggleVideoPlay(); return;
-        }
-        if (isSettingsMode) {
-          toggleSetting(selectedSettingIndex);
-          renderSettings();
-          return;
-        }
-        if (videoListVisible) {
-          playSelectedVideo();
-          return;
-        }
-        // main menu actions
+        if (diaryMode) { toggleAudioPlay(); return; }
+        if (videoContainer.style.display === 'block') { toggleVideoPlay(); return; }
+        if (isSettingsMode) { toggleSetting(selectedSettingIndex); renderSettings(); return; }
+        if (videoListVisible) { playSelectedVideo(); return; }
         if (selectedIndex === 0) showVideoList();
-        else if (selectedIndex === 1) showDiary();    // Diary selected
+        else if (selectedIndex === 1) showDiary();
         else if (selectedIndex === 3) enterGifts();
         else if (selectedIndex === 4) enterSettings();
       });
@@ -734,8 +777,7 @@
         e.stopPropagation();
         if (showingSplash) { hideSplash(); return; }
         if (videoContainer.style.display === 'block') {
-          video.pause();
-          videoPlaying = false;
+          video.pause(); videoPlaying = false;
           videoContainer.style.display = 'none';
           videoListContainer.style.display = 'block';
           menuLocation.textContent = 'Movies';
@@ -750,13 +792,10 @@
       playBtn.addEventListener('click', e => {
         e.stopPropagation();
         if (showingSplash) return;
-        if (videoContainer.style.display === 'block') {
-          toggleVideoPlay();
-        } else if (selectedIndex === 0 && !videoListVisible) {
-          showVideoList();
-        } else if (videoListVisible) {
-          playSelectedVideo();
-        }
+        if (videoContainer.style.display === 'block') { toggleVideoPlay(); }
+        else if (selectedIndex === 0 && !videoListVisible) { showVideoList(); }
+        else if (videoListVisible) { playSelectedVideo(); }
+        else if (diaryMode) { toggleAudioPlay(); }
       });
 
       videoListContainer.addEventListener('click', (e) => {
@@ -802,16 +841,15 @@
       showingSplash = true;
       menuContainer.style.display = 'block';
       videoListContainer.style.display = 'none';
-      diaryContainer.style.display = 'none';
+      diaryPlayer.style.display = 'none';
       videoContainer.style.display = 'none';
       giftsContainer.style.display = 'none';
       settingsContainer.style.display = 'none';
       refreshMainMenuActive();
-      applyBacklight();
-      applyBlueLight();
+      applyBacklight(); applyBlueLight();
 
-      // wheel scroll for containers
-      const scrollContainers = [menuContainer, videoListContainer, giftsContainer, settingsContainer, diaryContainer];
+      // wheel scroll
+      const scrollContainers = [menuContainer, videoListContainer, giftsContainer, settingsContainer];
       scrollContainers.forEach(container => {
         if (container) {
           container.addEventListener('wheel', (e) => {
@@ -820,7 +858,6 @@
           }, { passive: false });
         }
       });
-
     })();
   </script>
 </body>
